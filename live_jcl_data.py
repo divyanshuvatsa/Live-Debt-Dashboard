@@ -335,6 +335,12 @@ def load_facility_master(file_hash: str, _path_str: str) -> pd.DataFrame:
     # Fill NaN outstanding with sanction (full utilisation default)
     df["Outstanding_INR"] = df["Outstanding_INR"].fillna(df["Sanction_INR"])
 
+    # Fill NaN rates with 0 — TBD facilities contribute 0 to WAC/interest
+    # NaN propagates through arithmetic and causes nan display in dashboard
+    for num_col in ["Effective_Rate", "Spread", "Tenor_Months"]:
+        if num_col in df.columns:
+            df[num_col] = df[num_col].fillna(0.0)
+
     # Computed fields
     df["Headroom_INR"] = df["Sanction_INR"] - df["Outstanding_INR"]
     df["Utilisation"] = df["Outstanding_INR"] / df["Sanction_INR"]
