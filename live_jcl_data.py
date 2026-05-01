@@ -332,6 +332,25 @@ def load_facility_master(file_hash: str, _path_str: str) -> pd.DataFrame:
         if col in df.columns:
             df[col] = pd.to_datetime(df[col], errors="coerce")
 
+    # Fix: Some validity dates in Excel are text ("Annual renewal", "Per renewal cycle")
+    # which parse to NaT. For these, compute implied date as Sanction Date + 12 months.
+    # This restores SIB (6 facilities) and some YES Bank facilities to the renewal tracker.
+    if "Validity_Date" in df.columns:
+        # Find the Sanction Date column (Col Z in Excel)
+        sanction_col = None
+        for col in df.columns:
+            col_str = str(col).lower().replace("\n", " ")
+            if "sanction" in col_str and "date" in col_str:
+                sanction_col = col
+                break
+
+        # For each row where Validity_Date is NaT, try to infer from Sanction Date + 12M
+        nat_mask = df["Validity_Date"].isna()
+        if nat_mask.any() and sanction_col is not None:
+            sanction_dates = pd.to_datetime(df.loc[nat_mask, sanction_col], errors="coerce")
+            implied = sanction_dates + pd.DateOffset(months=12)
+            df.loc[nat_mask, "Validity_Date"] = implied
+
     # Fill NaN outstanding with sanction (full utilisation default)
     df["Outstanding_INR"] = df["Outstanding_INR"].fillna(df["Sanction_INR"])
 
