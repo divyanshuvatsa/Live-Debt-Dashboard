@@ -161,9 +161,9 @@ def load_instructions(file_hash: str, _path_str: str) -> dict:
         "Secured Debt":        35,
         "External Rating":     36,
         "Promoter %":          37,
-        "Sched TL Repay":      38,  # Principal Repayment (TTM)
+        "Sched TL Repay TTM":  38,  # Principal Repayment (TTM) — NOT used for DSCR
         "Tax Paid":            39,
-        "Sched TL Repay 12M":  40,  # Scheduled TL Repayment next 12M
+        "Sched TL Repay":      40,  # Scheduled TL Repayment next 12M — used for DSCR
     }
 
     fin_active = {}
